@@ -2,6 +2,7 @@ const { randomUUID } = require('node:crypto');
 const mongoose = require('mongoose');
 const request = require('supertest');
 
+require('dotenv').config();
 process.env.MONGODB_URI ??= 'mongodb://127.0.0.1:27017/insurance_assessment';
 const app = require('../src/app');
 require('../src/config/database');

@@ -11,7 +11,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "jest --passWithNoTests"
+    "test": "jest"
   },
   "dependencies": {
     "csv-parse": "^7.0.3",

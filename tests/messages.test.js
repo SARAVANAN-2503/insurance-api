@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const request = require('supertest');
 const { DateTime } = require('luxon');
 
+require('dotenv').config();
 process.env.MONGODB_URI ??= 'mongodb://127.0.0.1:27017/insurance_assessment';
 process.env.APP_TIMEZONE = 'Asia/Kolkata';
 process.env.MESSAGE_STALE_TIMEOUT_MS = '60000';

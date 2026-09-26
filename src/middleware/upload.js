@@ -37,6 +37,10 @@ async function upload(req, res, next) {
     next();
   } catch (err) {
     await fs.rm(req.uploadDirectory, { recursive: true, force: true });
+    if (['Multipart: Boundary not found', 'Malformed part header', 'Unexpected end of form',
+      'Unexpected end of file', 'Malformed content type'].includes(err.message)) {
+      return next(new AppError('Malformed multipart upload', 400));
+    }
     next(err);
   }
 }
