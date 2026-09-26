@@ -4,6 +4,7 @@ const app = require('./app');
 const { connectDatabase, disconnectDatabase } = require('./config/database');
 const { stopImports } = require('./services/import-service');
 const { startMessageScheduler, stopMessageScheduler } = require('./jobs/message-scheduler');
+const { startCpuMonitor, stopCpuMonitor } = require('./monitoring/cpu-monitor');
 
 const server = http.createServer(app);
 let shuttingDown = false;
@@ -23,14 +24,26 @@ async function start() {
   });
 
   console.log(`Server listening on port ${env.port}`);
-  if (!shuttingDown) startMessageScheduler();
+  if (!shuttingDown) {
+    startMessageScheduler();
+    if (env.cpuMonitorEnabled) {
+      startCpuMonitor({
+        thresholdPercent: env.cpuThresholdPercent,
+        sampleIntervalMs: env.cpuSampleIntervalMs,
+        startupGraceMs: env.cpuStartupGraceMs,
+        onThreshold: () => shutdown('CPU threshold reached', 1),
+      });
+    }
+  }
 }
 
 async function shutdown(reason, exitCode = 0) {
   if (shuttingDown) return;
   shuttingDown = true;
+  stopCpuMonitor();
   const importsStopped = stopImports();
   const schedulerStopped = stopMessageScheduler();
+  let cleanupFailed = false;
   console.log(`Shutting down: ${reason}`);
 
   const timeout = setTimeout(() => {
@@ -49,13 +62,21 @@ async function shutdown(reason, exitCode = 0) {
 
     await importsStopped;
     await schedulerStopped;
-    await disconnectDatabase();
     process.exitCode = exitCode;
   } catch (err) {
+    cleanupFailed = true;
     console.error('Shutdown failed:', err.name);
     process.exitCode = 1;
   } finally {
-    clearTimeout(timeout);
+    try {
+      await disconnectDatabase();
+    } catch (err) {
+      cleanupFailed = true;
+      console.error('MongoDB shutdown failed:', err.name);
+      process.exitCode = 1;
+    } finally {
+      if (!cleanupFailed) clearTimeout(timeout);
+    }
   }
 }
 

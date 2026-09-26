@@ -8,6 +8,10 @@ const importMaxRows = Number(process.env.IMPORT_MAX_ROWS ?? 100000);
 const appTimezone = process.env.APP_TIMEZONE ?? 'Asia/Kolkata';
 const messagePollMs = Number(process.env.MESSAGE_POLL_INTERVAL_MS ?? 1000);
 const messageStaleMs = Number(process.env.MESSAGE_STALE_TIMEOUT_MS ?? 60000);
+const cpuEnabledValue = process.env.CPU_MONITOR_ENABLED ?? 'true';
+const cpuThresholdPercent = Number(process.env.CPU_THRESHOLD_PERCENT ?? 70);
+const cpuSampleIntervalMs = Number(process.env.CPU_SAMPLE_INTERVAL_MS ?? 5000);
+const cpuStartupGraceMs = Number(process.env.CPU_STARTUP_GRACE_MS ?? 10000);
 
 if (!Number.isInteger(port) || port < 1 || port > 65535) {
   throw new Error('PORT must be an integer between 1 and 65535');
@@ -32,4 +36,19 @@ if (!Number.isInteger(messageStaleMs) || messageStaleMs < 1000 || messageStaleMs
   throw new Error('MESSAGE_STALE_TIMEOUT_MS must be an integer between 1000 and 3600000');
 }
 
-module.exports = { port, mongodbUri, uploadMaxMb, importMaxRows, appTimezone, messagePollMs, messageStaleMs };
+if (!['true', 'false'].includes(cpuEnabledValue)) throw new Error('CPU_MONITOR_ENABLED must be true or false');
+if (!Number.isFinite(cpuThresholdPercent) || cpuThresholdPercent <= 0 || cpuThresholdPercent > 100) {
+  throw new Error('CPU_THRESHOLD_PERCENT must be greater than 0 and at most 100');
+}
+if (!Number.isInteger(cpuSampleIntervalMs) || cpuSampleIntervalMs < 100 || cpuSampleIntervalMs > 60000) {
+  throw new Error('CPU_SAMPLE_INTERVAL_MS must be an integer between 100 and 60000');
+}
+if (!Number.isInteger(cpuStartupGraceMs) || cpuStartupGraceMs < 0 || cpuStartupGraceMs > 3600000
+  || process.env.CPU_STARTUP_GRACE_MS === '') {
+  throw new Error('CPU_STARTUP_GRACE_MS must be an integer between 0 and 3600000');
+}
+
+module.exports = {
+  port, mongodbUri, uploadMaxMb, importMaxRows, appTimezone, messagePollMs, messageStaleMs,
+  cpuMonitorEnabled: cpuEnabledValue === 'true', cpuThresholdPercent, cpuSampleIntervalMs, cpuStartupGraceMs,
+};
