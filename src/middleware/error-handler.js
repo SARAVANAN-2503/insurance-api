@@ -1,4 +1,5 @@
 const AppError = require('../utils/app-error');
+const multer = require('multer');
 
 function errorHandler(err, req, res, next) {
   if (res.headersSent) {
@@ -11,6 +12,9 @@ function errorHandler(err, req, res, next) {
   if (err instanceof AppError) {
     statusCode = err.statusCode;
     message = err.message;
+  } else if (err instanceof multer.MulterError) {
+    statusCode = err.code === 'LIMIT_FILE_SIZE' ? 413 : 400;
+    message = err.code === 'LIMIT_FILE_SIZE' ? 'File exceeds the upload size limit' : 'Invalid multipart upload';
   } else if (err.type === 'entity.parse.failed') {
     statusCode = 400;
     message = 'Invalid JSON body';
@@ -22,7 +26,7 @@ function errorHandler(err, req, res, next) {
     message = 'Unsupported request encoding';
   }
 
-  if (statusCode >= 500) {
+  if (statusCode >= 500 && !(err instanceof AppError)) {
     console.error(err);
     message = 'Internal server error';
   }

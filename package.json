@@ -14,9 +14,12 @@
     "test": "jest --passWithNoTests"
   },
   "dependencies": {
+    "csv-parse": "^7.0.3",
     "dotenv": "^16.6.1",
+    "exceljs": "^4.4.0",
     "express": "^5.1.0",
-    "mongoose": "^8.19.1"
+    "mongoose": "^8.19.1",
+    "multer": "^2.4.0"
   },
   "devDependencies": {
     "jest": "^30.2.0",

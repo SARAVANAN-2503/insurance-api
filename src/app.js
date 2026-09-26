@@ -1,6 +1,7 @@
 const express = require('express');
 const AppError = require('./utils/app-error');
 const errorHandler = require('./middleware/error-handler');
+const imports = require('./routes/imports');
 
 const app = express();
 
@@ -10,6 +11,8 @@ app.use(express.json({ limit: '1mb' }));
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
+
+app.use('/api/imports', imports);
 
 app.use((req, res, next) => {
   next(new AppError('Route not found', 404));

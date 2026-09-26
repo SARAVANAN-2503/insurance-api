@@ -2,6 +2,7 @@ const http = require('node:http');
 const env = require('./config/env');
 const app = require('./app');
 const { connectDatabase, disconnectDatabase } = require('./config/database');
+const { stopImports } = require('./services/import-service');
 
 const server = http.createServer(app);
 let shuttingDown = false;
@@ -26,6 +27,7 @@ async function start() {
 async function shutdown(reason, exitCode = 0) {
   if (shuttingDown) return;
   shuttingDown = true;
+  const importsStopped = stopImports();
   console.log(`Shutting down: ${reason}`);
 
   const timeout = setTimeout(() => {
@@ -42,6 +44,7 @@ async function shutdown(reason, exitCode = 0) {
       });
     }
 
+    await importsStopped;
     await disconnectDatabase();
     process.exitCode = exitCode;
   } catch (err) {
