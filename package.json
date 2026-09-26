@@ -1,0 +1,26 @@
+{
+  "name": "insurance-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Insurance data API technical assessment",
+  "type": "commonjs",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest --passWithNoTests"
+  },
+  "dependencies": {
+    "dotenv": "^16.6.1",
+    "express": "^5.1.0",
+    "mongoose": "^8.19.1"
+  },
+  "devDependencies": {
+    "jest": "^30.2.0",
+    "nodemon": "^3.1.10",
+    "supertest": "^7.1.4"
+  }
+}
