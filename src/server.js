@@ -3,6 +3,7 @@ const env = require('./config/env');
 const app = require('./app');
 const { connectDatabase, disconnectDatabase } = require('./config/database');
 const { stopImports } = require('./services/import-service');
+const { startMessageScheduler, stopMessageScheduler } = require('./jobs/message-scheduler');
 
 const server = http.createServer(app);
 let shuttingDown = false;
@@ -22,12 +23,14 @@ async function start() {
   });
 
   console.log(`Server listening on port ${env.port}`);
+  if (!shuttingDown) startMessageScheduler();
 }
 
 async function shutdown(reason, exitCode = 0) {
   if (shuttingDown) return;
   shuttingDown = true;
   const importsStopped = stopImports();
+  const schedulerStopped = stopMessageScheduler();
   console.log(`Shutting down: ${reason}`);
 
   const timeout = setTimeout(() => {
@@ -45,6 +48,7 @@ async function shutdown(reason, exitCode = 0) {
     }
 
     await importsStopped;
+    await schedulerStopped;
     await disconnectDatabase();
     process.exitCode = exitCode;
   } catch (err) {

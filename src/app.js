@@ -3,6 +3,7 @@ const AppError = require('./utils/app-error');
 const errorHandler = require('./middleware/error-handler');
 const imports = require('./routes/imports');
 const policies = require('./routes/policies');
+const messages = require('./routes/messages');
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/imports', imports);
 app.use('/api/policies', policies);
+app.use('/api/messages', messages);
 
 app.use((req, res, next) => {
   next(new AppError('Route not found', 404));
