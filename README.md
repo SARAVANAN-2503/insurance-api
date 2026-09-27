@@ -38,6 +38,8 @@ Open http://localhost:3000 to use the optional demo UI. The server connects to M
 |---|---|---|
 | GET | `/api/health` | Process health: `{ "status": "ok" }` |
 | POST | `/api/imports` | Upload a CSV/XLSX file in multipart field `file` |
+| GET | `/api/imports/:id` | Import status and row counts |
+| GET | `/api/imports/:id/report` | Download the Excel issue report |
 | GET | `/api/policies/search?name=Aarav&page=1&limit=20` | Search policies by the complete user name |
 | GET | `/api/policies/aggregate` | Return policies grouped by user |
 | POST | `/api/messages/schedule` | Schedule a message using `message`, `day`, and `time` |
@@ -105,9 +107,11 @@ Policy search matches the complete normalized user name, ignoring case and extra
 
 ### Import Worker
 
-Express accepts the upload and starts a Worker Thread so parsing and import work do not block the main server thread. The worker uses its own MongoDB connection, and temporary upload files are removed after it exits. A 202 response means the import started; check server logs for completion counts or failure.
+Express accepts the upload and starts a Worker Thread so parsing and import work do not block the main server thread. The worker uses its own MongoDB connection, and temporary upload files are removed after it exits. A 202 response includes an import ID and status URL. The demo UI waits for completion and offers an Excel issue report.
 
-One import runs at a time per process. Interrupted imports do not resume automatically.
+One import runs at a time per process. Status shows newly imported policies, matching duplicates, and skipped rows separately. The report lists each affected source row, its original values, severity, and reason: duplicates are warnings; validation failures and identity/policy conflicts are errors. CSV row numbers count records, including blank records, rather than physical lines inside quoted values.
+
+Reports and status files are stored under `work/import-reports` and survive restarts. They contain uploaded data; keep the demo local and delete report directories when no longer needed. There is no automatic expiry. Interrupted imports do not resume automatically and may have no usable report. A malformed file or row-limit failure stops processing and is reported as a file-level error; unparsed rows cannot be listed individually.
 
 ### Message Scheduler
 
@@ -142,7 +146,7 @@ This is demo data, not the official assessment spreadsheet.
 npm test
 ```
 
-Current verified result: 72 tests passing across four suites. Database tests require a reachable MongoDB server and use isolated databases that are removed afterward.
+Current verified result: 76 tests passing across five suites. Database tests require a reachable MongoDB server and use isolated databases that are removed afterward.
 
 ## Environment Variables
 
@@ -164,7 +168,7 @@ Tests optionally accept `TEST_MONGODB_URI`; otherwise they use `MONGODB_URI` or 
 
 ## Notes
 
-- The official assessment spreadsheet has not been verified; the included spreadsheet is synthetic test data.
+- The supplied assessment CSV has been tested: 1,149 policies import and 49 rows have conflicting user details for reused email addresses. These conflicts appear in the issue report; the included demo spreadsheet remains synthetic.
 - CSV is streamed; XLSX is parsed in the Worker Thread using ExcelJS and held in worker memory.
 - Imports are not wrapped in one large transaction, so a failed import can leave already processed rows.
 - Scheduled messages are inserted at or after the requested time and can be delayed by application downtime.

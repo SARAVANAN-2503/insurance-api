@@ -31,8 +31,8 @@ async function upsert(model, filter, values) {
   }
 }
 
-function hasConflict(existing, incoming, fields) {
-  return fields.some((field) => {
+function conflictFields(existing, incoming, fields) {
+  return fields.filter((field) => {
     const left = existing[field];
     const right = incoming[field];
     if (left === undefined || left === null || left === '' || right === undefined) return false;
@@ -52,11 +52,9 @@ async function importRow(row) {
   }
   const identity = userIdentity(userData);
   const existingUser = await User.findOne(identity);
-  if (existingUser && hasConflict(existingUser, userData, ['normalizedFirstName', ...userFields])) {
-    return false;
-  }
   const user = existingUser || await upsert(User, identity, userData);
-  if (hasConflict(user, userData, ['normalizedFirstName', ...userFields])) return false;
+  const userConflicts = conflictFields(user, userData, ['normalizedFirstName', ...userFields]);
+  if (userConflicts.length) return { status: 'conflict', issue: `User identity matches an existing record but differs in: ${userConflicts.map((field) => field === 'normalizedFirstName' ? 'firstName' : field).join(', ')}` };
 
   const lob = await namedDocument(LOB, row.categoryName);
   const carrier = await namedDocument(Carrier, row.companyName);
@@ -72,8 +70,13 @@ async function importRow(row) {
     });
     policyData.account = account._id;
   }
-  const policy = await upsert(Policy, { carrier: carrier._id, policyNumber: row.policyNumber }, policyData);
-  return !hasConflict(policy, policyData, ['user', 'lob', 'account', 'agent', 'startDate', 'endDate']);
+  const filter = { carrier: carrier._id, policyNumber: row.policyNumber };
+  const existingPolicy = await Policy.findOne(filter);
+  const policy = existingPolicy || await upsert(Policy, filter, policyData);
+  const conflicts = conflictFields(policy, policyData, ['user', 'lob', 'account', 'agent', 'startDate', 'endDate']);
+  if (conflicts.length) return { status: 'conflict', issue: `Carrier and policy number already exist with different: ${conflicts.join(', ')}` };
+  if (existingPolicy) return { status: 'duplicate', issue: 'Policy already exists with matching supplied details; no new policy inserted' };
+  return { status: 'imported' };
 }
 
 async function initializeModels() {

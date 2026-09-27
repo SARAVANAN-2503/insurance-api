@@ -43,7 +43,12 @@ function mapHeaders(headers) {
 function mapRow(values, mapping) {
   const row = {};
   mapping.forEach((field, index) => {
-    if (field) row[field] = dateFields.has(field) ? parseDate(values[index]) : text(values[index]);
+    if (!field) return;
+    try {
+      row[field] = dateFields.has(field) ? parseDate(values[index]) : text(values[index]);
+    } catch (err) {
+      throw new Error(`${field}: ${err.message}`);
+    }
   });
   for (const field of requiredFields) {
     if (!row[field]) throw new Error(`Missing required value: ${field}`);

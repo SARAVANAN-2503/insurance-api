@@ -109,11 +109,24 @@ dropZone.addEventListener('drop', (event) => {
 byId('import-form').addEventListener('submit', (event) => {
   event.preventDefault();
   if (!selectedFile) return feedback('import-status', 'Choose a .csv or .xlsx file first.', 'error');
+  byId('import-report').hidden = true;
   const data = new FormData();
   data.append('file', selectedFile);
   void withLoading(byId('import-form').querySelector('button'), 'import-status', async () => {
-    await request('/api/imports', { method: 'POST', body: data });
-    feedback('import-status', 'Import accepted and processing has started. Completion is reported in the server logs.', 'success');
+    const job = await request('/api/imports', { method: 'POST', body: data });
+    let status;
+    do {
+      feedback('import-status', 'Processing file...');
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      status = await request(job.statusUrl);
+    } while (status.status === 'processing');
+    const counts = `${status.imported ?? 0} imported, ${status.duplicates ?? 0} duplicates, ${status.skipped ?? 0} skipped.`;
+    feedback('import-status', status.status === 'completed' ? `Import completed: ${counts}`
+      : `${status.message} ${counts}`, status.status === 'completed' ? 'success' : 'error');
+    if (status.reportUrl) {
+      byId('import-report').href = status.reportUrl;
+      byId('import-report').hidden = false;
+    }
   });
 });
 

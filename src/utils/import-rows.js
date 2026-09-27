@@ -19,7 +19,7 @@ function cellValue(cell) {
 async function* readRows(filePath, extension) {
   const input = fs.createReadStream(filePath);
   if (extension === '.csv') {
-    const parser = parse({ bom: true, skip_empty_lines: true, max_record_size: 1024 * 1024,
+    const parser = parse({ bom: true, skip_empty_lines: false, max_record_size: 1024 * 1024,
       relax_column_count: true });
     input.on('error', (err) => parser.destroy(err));
     input.pipe(parser);
