@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Insurance API · Technical Assessment</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header"><div class="header-inner">
+    <div class="brand"><h1>Insurance API</h1><p>Technical Assessment</p></div>
+    <div id="health" class="connection" role="status" aria-live="polite">Checking...</div>
+  </div></header>
+  <main id="main" class="workspace">
+    <div class="section-heading"><div><p class="eyebrow">Insurance data</p><h2>Import and explore policies</h2></div><a href="#messaging">Go to messages <span aria-hidden="true">↓</span></a></div>
+    <div class="insurance-grid">
+      <section class="card" aria-labelledby="import-title">
+        <div class="card-heading"><h3 id="import-title">Import Insurance Data</h3><p>Upload a spreadsheet to start processing.</p></div>
+        <form id="import-form">
+          <div id="drop-zone" class="drop-zone">
+            <label for="file">Choose a file or drop it here</label><p class="muted">CSV or XLSX</p>
+            <input id="file" name="file" type="file" accept=".csv,.xlsx" aria-describedby="file-name">
+          </div>
+          <p id="file-name" class="file-name" aria-live="polite">No file selected</p>
+          <button type="submit">Import Data</button>
+          <p id="import-status" class="feedback" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+      <section class="card" aria-labelledby="search-title">
+        <div class="card-heading"><h3 id="search-title">Search Policies</h3><p>Use the full user name. Matching ignores case and extra spaces.</p></div>
+        <form id="search-form" class="search-form"><div class="field"><label for="name">User name</label><input id="name" name="name" type="text" placeholder="e.g. John Smith" required></div><button type="submit">Search</button></form>
+        <p id="search-status" class="feedback" role="status" aria-live="polite">Enter a user name to see their policies.</p>
+        <div id="search-results"></div>
+        <div id="pagination" class="pagination" hidden><button id="previous" class="secondary" type="button">Previous</button><span id="page-label"></span><button id="next" class="secondary" type="button">Next</button></div>
+      </section>
+      <section class="card summary-card" aria-labelledby="summary-title">
+        <div class="card-toolbar"><div class="card-heading"><h3 id="summary-title">Policies by User</h3><p>View each user’s policies together.</p></div><button id="load-summary" class="secondary" type="button">Load Summary</button></div>
+        <p id="summary-status" class="feedback" role="status" aria-live="polite">Load the summary to view policy groups.</p>
+        <div id="summary-results" class="summary-results"></div>
+      </section>
+    </div>
+    <div id="messaging" class="section-heading"><div><p class="eyebrow">Messages</p><h2>Schedule and verify delivery</h2></div></div>
+    <div class="message-grid">
+      <section class="card" aria-labelledby="schedule-title">
+        <div class="card-heading"><h3 id="schedule-title">Schedule Message</h3><p>Save a message for insertion at a future time.</p></div>
+        <form id="schedule-form">
+          <div class="field"><label for="message">Message</label><textarea id="message" name="message" rows="3" required placeholder="Follow up with customer"></textarea></div>
+          <div class="date-fields"><div class="field"><label for="day">Day</label><input id="day" name="day" type="date" required></div><div class="field"><label for="time">Time</label><input id="time" name="time" type="time" step="60" required></div></div>
+          <p class="note">Day and time use the application’s configured timezone (default: Asia/Kolkata).</p>
+          <button type="submit">Schedule Message</button>
+          <p id="schedule-status" class="feedback" role="status" aria-live="polite"></p>
+          <dl id="schedule-result" class="schedule-result" hidden></dl>
+        </form>
+      </section>
+      <section class="card" aria-labelledby="messages-title">
+        <div class="card-toolbar"><div class="card-heading"><h3 id="messages-title">Delivered Messages</h3><p>Latest deliveries, newest first.</p></div><button id="refresh-messages" class="secondary" type="button">Refresh</button></div>
+        <p class="note">Timestamps are shown in your browser’s timezone.</p>
+        <p id="messages-status" class="feedback" role="status" aria-live="polite">Refresh to load delivered messages.</p>
+        <div id="messages-results"></div>
+      </section>
+    </div>
+    <footer>Optional demonstration interface for the Insurance REST API.</footer>
+  </main>
+</body>
+</html>

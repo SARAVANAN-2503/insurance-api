@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('node:path');
 const AppError = require('./utils/app-error');
 const errorHandler = require('./middleware/error-handler');
 const imports = require('./routes/imports');
@@ -17,6 +18,8 @@ app.get('/api/health', (req, res) => {
 app.use('/api/imports', imports);
 app.use('/api/policies', policies);
 app.use('/api/messages', messages);
+
+app.use(express.static(path.join(__dirname, '../public')));
 
 app.use((req, res, next) => {
   next(new AppError('Route not found', 404));
